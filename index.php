@@ -67,8 +67,10 @@ Flight::route('GET /deck/getIdByName/@username/@deckName', function($username, $
 Flight::route('POST /user/authenticate', function() {
     $username  = Utils::GetPostVar('username');
     $password = Utils::GetPostVar('password');
-    $authenticated = User::Authenticate($username, $password);
-    Flight::json($authenticated);
+
+    $user = new User();
+    $user->Authenticate($username, $password);
+    Flight::json($user);
 });
 
 Flight::route('POST /user', function() {

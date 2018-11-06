@@ -36,6 +36,10 @@
             <td>106</td>
             <td>Unable to load user, name not found.</td>
         </tr>
+        <tr>
+            <td>107</td>
+            <td>Authentication failed.</td>
+        </tr>
     </table>
 
     <h2>Decks</h2>

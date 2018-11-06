@@ -19,15 +19,19 @@ class User extends Response implements Pageable {
         $this->Save();
     }
 
-    public static function Authenticate($username, $password) {
+    public function Authenticate($username, $password) {
         $username = Utils::UrlSafe($username);
-        DB::executeQuery('username',"SELECT password FROM users WHERE username = '$username'");
+        DB::executeQuery('username',"SELECT id, password FROM users WHERE username = '$username'");
         if (count(DB::$results['username']) > 0) {
             $userPassword = DB::$results['username'][0]['password'];
-            return password_verify($password, $userPassword);
+            $userId =  DB::$results['username'][0]['id'];
+            if (password_verify($password, $userPassword)) {
+                $this->Load($userId);
+                return $this;
+            }
         }
 
-        return false;
+        return $this->ResponseError(400, 107, "Authentication failed.");;
     }
 
     public static function IsNameAvailable($username) {
