@@ -100,7 +100,7 @@ class User extends Response implements Pageable {
             return;
         }
 
-        if ($recoveryAge > 86400) {
+        if ($recoveryAge > 3600) {
             $this->HideSensitiveData();
             $this->ResponseError(400, 110, "Recovery code expired.");
             return;
