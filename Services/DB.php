@@ -9,7 +9,7 @@ class DB {
     public static $startTime;
     public static $endTime;
     public static $results;
-    public static $executionTime;    
+    public static $executionTime;
     
     public static function connect() {
         try {

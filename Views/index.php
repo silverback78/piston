@@ -38,7 +38,19 @@
         </tr>
         <tr>
             <td>107</td>
-            <td>Authentication failed.</td>
+            <td>Authentication failed, email on file.</td>
+        </tr>
+        <tr>
+            <td>108</td>
+            <td>Authentication failed, no email on file.</td>
+        </tr>
+        <tr>
+            <td>109</td>
+            <td>Recovery codes did not match.</td>
+        </tr>
+        <tr>
+            <td>110</td>
+            <td>Recovery code expired.</td>
         </tr>
     </table>
 

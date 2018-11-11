@@ -76,14 +76,14 @@ Flight::route('POST /user/authenticate', function() {
 Flight::route('POST /user', function() {
     $username = Utils::GetPostVar('username');
     $password = Utils::GetPostVar('password');
-    $passwordHint = Utils::GetPostVar('passwordHint');
+    $email = Utils::GetPostVar('email');
     $recaptchaResponse = Utils::GetPostVar('reCaptchaResponse');
 
     $result = ReCaptcha::Validate($recaptchaResponse);
 
     $user = new User();
     if ($result->success == true) {
-        $user->Create($username, $password, $passwordHint);
+        $user->Create($username, $password, $email);
     }
     else {
         $user->ResponseError(400, 102, 'Captcha failed. ' . json_encode($result));
@@ -130,6 +130,28 @@ Flight::route('POST /log', function() {
     $log = str_replace('%c', '', $log);
     $ip = $_SERVER['REMOTE_ADDR'];
     file_put_contents("logs/{$ip}.log", $log . "\n", FILE_APPEND | LOCK_EX);
+});
+
+Flight::route('POST /resetPassword', function() {
+    $username = Utils::GetPostVar('username');
+
+    $user = new User();
+    $user->LoadByName($username);
+    $user->ResetPassword();
+
+    Flight::json($user);
+});
+
+Flight::route('POST /updatePassword', function() {
+    $username = Utils::GetPostVar('username');
+    $password = Utils::GetPostVar('password');
+    $code = Utils::GetPostVar('code');
+
+    $user = new User();
+    $user->LoadByName($username);
+    $user->UpdatePassword($code, $password);
+
+    Flight::json($user);
 });
 
 Flight::start();

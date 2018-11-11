@@ -17,7 +17,7 @@ class Deck extends Response implements Pageable {
     public function Create($username, $password, $name, $description, $cardData) {
 
         $user = new User();
-        $user->LoadByName(Utils::UrlSafe($username));
+        $user->LoadByName($username);
         $this->user = $user;
 
         if ($this->user->referenceCode == 105) {

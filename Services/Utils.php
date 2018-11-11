@@ -21,6 +21,20 @@ class Utils {
 
         return $key;
     }
+
+    public static function ObfuscateEmail($email) {
+        if (Self::IsNullOrWhitespace($email)) return null;
+
+        $emailParts = explode('@', $email);
+        $name = implode(array_slice($emailParts, 0, count($emailParts) - 1), '@');
+        $length  = strlen($name) - 3;
+        if ($length > 0) {
+            return substr($name, 0, 3) . str_repeat('*', $length) . '@' . end($emailParts);
+        }
+        else {
+            return str_repeat('*', strlen($name)) . '@' . end($emailParts);
+        }
+    }
 }
 
 ?>
