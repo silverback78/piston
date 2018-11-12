@@ -10,3 +10,7 @@ logs
 .tmp.drivedownload
 /vendor
 /.htaccess.prod
+dev
+/prod
+/build-dev.bat
+/build-prod.bat
