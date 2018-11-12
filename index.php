@@ -154,5 +154,10 @@ Flight::route('POST /updatePassword', function() {
     Flight::json($user);
 });
 
+Flight::route('GET /delay/@time', function($time) {
+    sleep($time);
+    Flight::json(true);
+});
+
 Flight::start();
 ?>
