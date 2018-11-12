@@ -1,5 +1,5 @@
 <?php
-require_once('Models/Config.php');
+require_once('Config.php');
 
 class ReCaptcha {
 

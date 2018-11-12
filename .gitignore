@@ -2,9 +2,11 @@
 /composer.lock
 /composer.json
 /.htaccess
-/Models/Config.php
+/Config.php
+/Config.Prod.php
 Migrations
 logs
 .vscode
 .tmp.drivedownload
 /vendor
+/.htaccess.prod
