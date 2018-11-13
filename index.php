@@ -113,25 +113,6 @@ Flight::route('POST /deck/isNameAvailable', function() {
     Flight::json($isNameAvailable);
 });
 
-Flight::route('POST /card', function() {
-    $deckId = Utils::GetPostVar('deckId');
-    $password = Utils::GetPostVar('password');
-    $term = Utils::GetPostVar('term');
-    $definition = Utils::GetPostVar('definition');
-
-    $card = new Card();
-    $card->Create($password, $deckId, $term, $definition);
-
-    Flight::json($card);
-});
-
-Flight::route('POST /log', function() {
-    $log = Utils::GetPostVar('contents');
-    $log = str_replace('%c', '', $log);
-    $ip = $_SERVER['REMOTE_ADDR'];
-    file_put_contents("logs/{$ip}.log", $log . "\n", FILE_APPEND | LOCK_EX);
-});
-
 Flight::route('POST /resetPassword', function() {
     $username = Utils::GetPostVar('username');
 
@@ -152,11 +133,6 @@ Flight::route('POST /updatePassword', function() {
     $user->UpdatePassword($code, $password);
 
     Flight::json($user);
-});
-
-Flight::route('GET /delay/@time', function($time) {
-    sleep($time);
-    Flight::json(true);
 });
 
 Flight::start();
