@@ -32,7 +32,7 @@ Flight::route('GET /decks/@index/@length/@orderBy/@direction', function($index, 
 });
 
 Flight::route('GET /cards/@username/@deckName/@index/@length/@orderBy/@direction', function($username, $deckName, $index, $length, $orderBy, $direction) {
-    $deckId = DECK::GetIdByName($username, $deckName);
+    $deckId = Deck::GetIdByName($username, $deckName);
 
     $filter = ['deck_id' => $deckId];
     $page = new Pager(new Card(), $index, $length, $orderBy, $direction, $filter);
@@ -133,6 +133,11 @@ Flight::route('POST /updatePassword', function() {
     $user->UpdatePassword($code, $password);
 
     Flight::json($user);
+});
+
+Flight::route('DELETE /delete/@username/@password/@deckName', function($username, $password, $deckName) {
+    $deck = Deck::Delete($username, $password, $deckName);
+    Flight::json($deck);
 });
 
 Flight::start();

@@ -10,7 +10,7 @@ class Response {
         $this->referenceCode = $referenceCode;
         $this->message = $message;
 
-        return false;
+        return $this;
     }
 }
 

@@ -6,7 +6,7 @@
 </head>
 <body>
 
-    <h2>Users</h2>    
+    <h2>Users</h2>
     <table>
         <tr>
             <th>Reference Code</th>
@@ -82,10 +82,13 @@
         </tr>
         <tr>
         <td>205</td>
-            <td>Duplicate name found in this User.</td>
+            <td>Duplicate name found for this User.</td>
         </tr>
         <td>206</td>
             <td>Unable to load deck, user was not found.</td>
+        </tr>
+        <td>207</td>
+            <td>Unable to load deck, deck was not found.</td>
         </tr>
     </table>
     

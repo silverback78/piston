@@ -75,9 +75,11 @@ class User extends Response implements Pageable {
             $this->recoveryCode = rand ( 10000 , 99999 );
             $this->recoveryCodeTimestamp = date('Y-m-d H:i:s');
             $this->Update();
-            $subject  = 'Password reset verification code';
+            $subject  = 'StudyWidgets password reset';
             $message  = "A request has been made to reset the password for $this->username. Your temporary code is: $this->recoveryCode";
-            mail($this->email, $subject, $message);
+            $from = 'no-reply@studywidgets.com';
+            $headers = "From:$from";
+            mail($this->email, $subject, $message, $headers);
         }
         catch (Exception $e) {
             return false;

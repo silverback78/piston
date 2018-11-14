@@ -31,6 +31,33 @@ class Deck extends Response implements Pageable {
     
         $this->Save();
     }
+    
+    public static function Delete($username, $password, $deckName) {
+        $username = Utils::UrlSafe($username);
+        $deckName = Utils::UrlSafe($deckName);
+        $deck = new Deck();
+
+        $userId = User::GetIdByName($username);
+        if ($userId == -1) {
+            return $this->ResponseError(400, 206, 'Unable to load deck, user was not found.');
+        }
+
+        $deckId = Deck::GetIdByName($username, $deckName);
+        if ($deckId == -1) {
+            return $deck->ResponseError(400, 207, 'Unable to load deck, deck was not found.');
+        }
+
+        DB::executeQuery('user',"SELECT password FROM users WHERE id = $userId");
+        $userPassword = DB::$results['user'][0]['password'];
+
+        if (!password_verify($password, $userPassword)) {
+            return $deck->ResponseError(400, 201, 'Authentication failed.');
+        }
+
+        DB::executeSql("DELETE FROM decks WHERE id = $deckId");
+
+        return $deck;
+    }
 
     public static function IsNameAvailable($username, $name) {
         $name = Utils::UrlSafe($name);
