@@ -14,27 +14,27 @@
         </tr>
         <tr>
             <td>100</td>
-            <td>Name is a required field.</td>
+            <td>Username is a required field.</td>
         </tr>
         <tr>
             <td>101</td>
-            <td>Duplicate name found.</td>
+            <td>Duplicate Username found.</td>
         </tr>
         <tr>
             <td>102</td>
             <td>Captcha failed.</td>
         </tr>
         <tr>
+            <td>103</td>
+            <td>Password is a required field.</td>
+        </tr>
+        <tr>
             <td>104</td>
-            <td>User name must be 7 characters or longer.</td>
+            <td>Username must be 64 characters or less.</td>
         </tr>
         <tr>
             <td>105</td>
             <td>Unable to load user, id not found.</td>
-        </tr>
-        <tr>
-            <td>106</td>
-            <td>Unable to load user, name not found.</td>
         </tr>
         <tr>
             <td>107</td>
@@ -51,6 +51,14 @@
         <tr>
             <td>110</td>
             <td>Recovery code expired.</td>
+        </tr>
+        <tr>
+            <td>112</td>
+            <td>Error sending e-mail.</td>
+        </tr>
+        <tr>
+            <td>113</td>
+            <td>Authentication failed.</td>
         </tr>
     </table>
 

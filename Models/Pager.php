@@ -66,6 +66,8 @@ class Pager extends Response {
         $this->page = $page;
         return $this;
     }
+
+    public function ResetValues() {}
 }
 
 ?>

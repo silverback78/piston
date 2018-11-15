@@ -10,9 +10,7 @@ class Utils {
     }
 
     public static function UrlSafe($key) {
-        $key = preg_replace("/[^A-Za-z0-9 -]/", '', $key);
-        $key = preg_replace('/\s+/', '-', $key);
-
+        $key = preg_replace("/[^A-Za-z0-9\-\.]/", '', $key);
         return $key;
     }
 
@@ -34,6 +32,10 @@ class Utils {
         else {
             return str_repeat('*', strlen($name)) . '@' . end($emailParts);
         }
+    }
+
+    public static function Log($object) {
+        fwrite(STDERR, print_r($object, TRUE));
     }
 }
 
