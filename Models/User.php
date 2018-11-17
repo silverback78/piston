@@ -13,33 +13,29 @@ class User extends Response implements Pageable {
     private $suppliedPassword;
     private $password;
     private $email;
-    private $suppliedRecoveryCode;
     private $recoveryCode;
     private $recoveryCodeTimestamp;
     private $recaptchaResponse;
     private $valid = false;
     private $updatingPassword = false;
 
-    public static function IsNameAvailable($username) {
+    public static function GetIdByName($username) {
         $username = Utils::UrlSafe($username);
-        if (strlen($username) < 7) return false;
         DB::executeQuery('username',"SELECT id FROM users WHERE username = '$username'");
         if (count(DB::$results['username']) > 0) {
-            return false;
+            return intval(DB::$results['username'][0]['id']);
         }
-
-        return true;
+        else {
+            return -1;
+        }
     }
 
-    function __construct($username = null, $suppliedPassword = null, $suppliedRecoveryCode = null) {
+    function __construct($username = null, $suppliedPassword = null) {
         if (!Utils::IsNullOrWhitespace($username)) {
             $this->username = Utils::UrlSafe($username);
         }
         if (!Utils::IsNullOrWhitespace($suppliedPassword)) {
             $this->suppliedPassword = $suppliedPassword;
-        }
-        if (!Utils::IsNullOrWhitespace($suppliedRecoveryCode)) {
-            $this->suppliedRecoveryCode = $suppliedRecoveryCode;
         }
         $this->Load();
     }
@@ -49,6 +45,7 @@ class User extends Response implements Pageable {
     }
 
     public function Create($data) {
+        if ($this->exception) return;
         if ($data === null) return;
 
         $this->username = array_key_exists('username', $data) ? Utils::UrlSafe($data['username']) : null;
@@ -67,12 +64,20 @@ class User extends Response implements Pageable {
     }
 
     public function Read() {
+        if ($this->exception) return;
         return $this;
     }
 
     public function Update($data) {
+        if ($this->exception) return;
+
+        DB::executeQuery('user', "SELECT id FROM users WHERE username = '$this->username'");
+        if (count(DB::$results['user']) <= 0) {
+            return $this->Create($data);
+        }
+
         if (!$this->authenticated) {
-            return $this->ResponseError(400, 113, "Authentication failed.");
+            return $this->AuthenticationFailed();
         }
 
         if (array_key_exists('password', $data) && !Utils::IsNullOrWhitespace($data['password'])){
@@ -85,12 +90,13 @@ class User extends Response implements Pageable {
         $this->Validate('update');
         if (!$this->valid) return;
 
-        DB::executeSql("UPDATE users SET password = '$this->password', email = '$this->email' WHERE id = $this->id");
+        DB::executeSql("UPDATE users SET password = '$this->password', email = '$this->email', recovery_code = null, recovery_code_timestamp = null WHERE id = $this->id");
     }
 
     public function Delete() {
+        if ($this->exception) return;
         if (!$this->authenticated) {
-            return $this->ResponseError(400, 113, "Authentication failed.");
+            return $this->AuthenticationFailed();
         }
         DB::executeSql("DELETE FROM users WHERE id = $this->id");
     }
@@ -119,7 +125,6 @@ class User extends Response implements Pageable {
         if (Utils::IsNullOrWhitespace($this->username)) return;
 
         DB::executeQuery('user', "SELECT id, username, password, email, created_on, recovery_code, recovery_code_timestamp FROM users WHERE username = '$this->username'");
-
         if (count(DB::$results['user']) <= 0) {
             return $this->ResponseError(400, 105, "Unable to load user, username not found.");
         }
@@ -146,6 +151,24 @@ class User extends Response implements Pageable {
             return;
         }
 
+        if ($this->recoveryCode != null && $this->recoveryCodeTimestamp != null) {
+            $recoveryAge = time() - $this->recoveryCodeTimestamp;
+            if ($recoveryAge > 3600) {
+                return $this->ResponseError(400, 110, "Recovery code expired.");
+            }
+
+            if ($this->suppliedPassword == $this->recoveryCode) {
+                $this->authenticated = true;
+                return;
+            }
+        }
+
+        return $this->AuthenticationFailed();
+    }
+
+    private function AuthenticationFailed() {
+        if ($this->exception) return;
+
         if (!Utils::IsNullOrWhitespace($this->email)) {
             return $this->ResponseError(400, 107, "Authentication failed, email on file.");
         }
@@ -156,11 +179,11 @@ class User extends Response implements Pageable {
 
     private function Validate($operation) {
         if (Utils::IsNullOrWhitespace($this->username)) {
-            return $this->ResponseError(400, 100, 'Username is required.');
+            return $this->ResponseError(400, 100, 'Username is a required field.');
         }
 
         if (Utils::IsNullOrWhitespace($this->password)) {
-            return $this->ResponseError(400, 103, 'Password is required.');
+            return $this->ResponseError(400, 103, 'Password is a required field.');
         }
 
         if (strlen($this->username) > 64) {
@@ -172,27 +195,10 @@ class User extends Response implements Pageable {
             if (count(DB::$results['username']) > 0) {
                 return $this->ResponseError(400, 101, "Duplicate username found.");
             }
-    
+
             $validateRecaptcha = ReCaptcha::Validate($this->recaptchaResponse);
-            if ($validateRecaptcha->success != true) {
+            if (Config::$recaptchaEnabled && $validateRecaptcha->success != true) {
                 return $this->ResponseError(400, 102, 'Captcha failed.');
-            }
-        }
-
-        if ($operation == 'update') {
-            if ($this->updatingPassword == true) {
-                if (Utils::IsNullOrWhitespace($this->recoveryCode) || $this->recoveryCodeTimestamp == null) {
-                    return $this->ResponseError(400, 109, "Recovery codes did not match.");
-                }
-
-                if ($this->suppliedRecoveryCode != $this->recoveryCode) {
-                    return $this->ResponseError(400, 109, "Recovery codes did not match.");
-                }
-
-                $recoveryAge = time() - $this->recoveryCodeTimestamp;
-                if ($recoveryAge > 3600) {
-                    return $this->ResponseError(400, 110, "Recovery code expired.");
-                }
             }
         }
 
@@ -210,6 +216,8 @@ class User extends Response implements Pageable {
         $this->recoveryCodeTimestamp = null;
         $this->authenticated = false;
         $this->valid = false;
+        $this->username = null;
+        $this->suppliedPassword = null;
     }
 
     private function SetValues($values) {

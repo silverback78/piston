@@ -1,8 +1,8 @@
 <?php
 require_once('Models/User.php');
 require_once('Services/Utils.php');
-require_once('Mocks/ReCaptcha.php');
 require_once('Services/DB.php');
+require_once('Services/ReCaptcha.php');
 
 use PHPUnit\Framework\TestCase;
 
@@ -21,12 +21,10 @@ final class UserTest extends TestCase
     public $testWrongRecoveryCode = '54321';
 
     public function DeleteUser() {
-        DB::executeSql("DELETE FROM users WHERE username = $this->testUsername");
+        DB::executeSql("DELETE FROM users WHERE username = '$this->testUsername'");
     }
 
     public function CreateUser() {
-        $this->DeleteUser();
-        ReCaptcha::$success = true;
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
@@ -37,7 +35,6 @@ final class UserTest extends TestCase
 
     public function CreateUserWithoutEmail() {
         $this->DeleteUser();
-        ReCaptcha::$success = true;
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
@@ -56,6 +53,14 @@ final class UserTest extends TestCase
         DB::executeSql("UPDATE users SET recovery_code = $this->testRecoveryCode, recovery_code_timestamp = '$recoveryCodeTimestamp' WHERE username = $this->testUsername");
     }
 
+    public function setUp() {
+        $this->DeleteUser();
+    }
+
+    public function tearDown() {
+        $this->DeleteUser();
+    }
+
     public function testInstantiateUserWithNoParameters()
     {
         $user = new User();
@@ -69,68 +74,49 @@ final class UserTest extends TestCase
 
     public function testCreateUserValidationEmptyUser()
     {
-        $this->DeleteUser();
-
         $user = new User();
         $data = [];
         $user->Create($data);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Username is a required field.');
         $this->assertEquals($user->referenceCode, 100);
     }
 
     public function testCreateUserValidationUsernameOnly() {
-        $this->DeleteUser();
-
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
         $user->Create($data);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Password is a required field.');
         $this->assertEquals($user->referenceCode, 103);
     }
 
     public function testCreateUserValidationUsernameTooLong() {
-        $this->DeleteUser();
-
         $user = new User();
         $data = [];
         $data['username'] = $this->testLongUsername;
         $data['password'] = $this->testPassword;
         $user->Create($data);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Username must be 64 characters or less.');
         $this->assertEquals($user->referenceCode, 104);
-    }
-
-    public function testCreateUserValidationFailedCaptcha() {
-        $this->DeleteUser();
-
-        ReCaptcha::$success = false;
-        $user = new User();
-        $data = [];
-        $data['username'] = $this->testUsername;
-        $data['password'] = $this->testPassword;
-        $user->Create($data);
-        $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 102);
     }
 
     public function testCreateUserValidationDuplicateUserName() {
         $this->CreateUser();
 
-        ReCaptcha::$success = true;
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
         $data['password'] = $this->testPassword;
         $user->Create($data);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Duplicate username found.');
         $this->assertEquals($user->referenceCode, 101);
     }
 
     public function testCreateUserValidationSuccess() {
-        $this->DeleteUser();
-
-        ReCaptcha::$success = true;
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
@@ -142,9 +128,6 @@ final class UserTest extends TestCase
     }
 
     public function testCreateUserValidationSuccessWithEmail() {
-        $this->DeleteUser();
-
-        ReCaptcha::$success = true;
         $user = new User();
         $data = [];
         $data['username'] = $this->testUsername;
@@ -184,6 +167,7 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Authentication failed, email on file.');
         $this->assertEquals($user->referenceCode, 107);
     }
 
@@ -195,6 +179,7 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Authentication failed, no email on file.');
         $this->assertEquals($user->referenceCode, 108);
     }
 
@@ -208,7 +193,8 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 113);
+        $this->assertEquals($user->message, 'Username is a required field.');
+        $this->assertEquals($user->referenceCode, 100);
 
         $this->CreateUser();
 
@@ -219,40 +205,8 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 113);
-
-        $this->CreateUser();
-
-        $data['email'] = $this->testEmail;
-        $user = new User($this->testUsername, $this->testBadPassword);
-        $user->Update($data);
-        $this->assertEquals($user->username, null);
-        $this->assertEquals($user->authenticated, false);
-        $this->assertEquals($user->obfuscatedEmail, null);
-        $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 113);
-
-        $this->CreateUser();
-
-        $data['email'] = $this->testEmail;
-        $user = new User('', $this->testPassword);
-        $user->Update($data);
-        $this->assertEquals($user->username, null);
-        $this->assertEquals($user->authenticated, false);
-        $this->assertEquals($user->obfuscatedEmail, null);
-        $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 113);
-
-        $this->CreateUser();
-
-        $data['email'] = $this->testEmail;
-        $user = new User($this->testUsername, '');
-        $user->Update($data);
-        $this->assertEquals($user->username, null);
-        $this->assertEquals($user->authenticated, false);
-        $this->assertEquals($user->obfuscatedEmail, null);
-        $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 113);
+        $this->assertEquals($user->message, 'Authentication failed, email on file.');
+        $this->assertEquals($user->referenceCode, 107);
     }
 
     public function testUpdateUserEmail() {
@@ -267,17 +221,30 @@ final class UserTest extends TestCase
         $this->assertEquals($user->statusCode, 200);
     }
 
+    public function testUpdateNewUserEmail() {
+        $data['username'] = $this->testUsername;
+        $data['password'] = $this->testPassword;
+        $data['email'] = $this->testNewEmail;
+        $user = new User();
+        $user->Update($data);
+        $this->assertEquals($user->username, $this->testUsername);
+        $this->assertEquals($user->authenticated, false);
+        $this->assertEquals($user->obfuscatedEmail, $this->testNewEmailObfuscated);
+        $this->assertEquals($user->statusCode, 200);
+    }
+
     public function testUpdateUserPasswordWithoutRecoveryCode() {
         $this->CreateUser();
 
         $data['password'] = $this->testNewPassword;
-        $user = new User($this->testUsername, $this->testPassword);
+        $user = new User($this->testUsername);
         $user->Update($data);
         $this->assertEquals($user->username, null);
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 109);
+        $this->assertEquals($user->message, 'Authentication failed, email on file.');
+        $this->assertEquals($user->referenceCode, 107);
     }
 
     public function testUpdateUserPasswordWrongRecoveryCode() {
@@ -285,13 +252,14 @@ final class UserTest extends TestCase
         $this->SetRecoveryCode();
 
         $data['password'] = $this->testNewPassword;
-        $user = new User($this->testUsername, $this->testPassword, $this->testWrongRecoveryCode);
+        $user = new User($this->testUsername, $this->testWrongRecoveryCode);
         $user->Update($data);
         $this->assertEquals($user->username, null);
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->referenceCode, 109);
+        $this->assertEquals($user->message, 'Authentication failed, email on file.');
+        $this->assertEquals($user->referenceCode, 107);
     }
 
     public function testUpdateUserPasswordOldRecoveryCode() {
@@ -299,12 +267,13 @@ final class UserTest extends TestCase
         $this->SetOldRecoveryCode();
 
         $data['password'] = $this->testNewPassword;
-        $user = new User($this->testUsername, $this->testPassword, $this->testRecoveryCode);
+        $user = new User($this->testUsername, $this->testRecoveryCode);
         $user->Update($data);
         $this->assertEquals($user->username, null);
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Recovery code expired.');
         $this->assertEquals($user->referenceCode, 110);
     }
 
@@ -313,7 +282,7 @@ final class UserTest extends TestCase
         $this->SetRecoveryCode();
 
         $data['password'] = $this->testNewPassword;
-        $user = new User($this->testUsername, $this->testPassword, $this->testRecoveryCode);
+        $user = new User($this->testUsername, $this->testRecoveryCode);
         $user->Update($data);
         $this->assertEquals($user->username, $this->testUsername);
         $this->assertEquals($user->authenticated, true);
@@ -341,6 +310,7 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
+        $this->assertEquals($user->message, 'Unable to load user, username not found.');
         $this->assertEquals($user->referenceCode, 105);
     }
 }

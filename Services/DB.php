@@ -44,7 +44,6 @@ class DB {
         catch (PDOException $e) {
             echo "Error : " . $e->getMessage() . "<br/>";
             self::closeConnection();
-            die();
         }
         self::$endTime = microtime(true);
         self::$executionTime = self::$endTime - self::$startTime;

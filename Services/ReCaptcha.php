@@ -4,6 +4,8 @@ require_once('Config.php');
 class ReCaptcha {
 
     public static function Validate($recaptchaResponse) {
+      if (!Config::$recaptchaEnabled) return;
+
       $url = Config::$recaptchaPostUrl;
       $data = array(
         'secret' => Config::$recaptchaSecret,
