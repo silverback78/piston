@@ -18,6 +18,7 @@ class User extends Response implements Pageable {
     private $recaptchaResponse;
     private $valid = false;
     private $updatingPassword = false;
+    private $invalidRecoveryCode = false;
 
     public static function GetIdByName($username) {
         $username = Utils::UrlSafe($username);
@@ -161,6 +162,9 @@ class User extends Response implements Pageable {
                 $this->authenticated = true;
                 return;
             }
+            else {
+                $this->invalidRecoveryCode = true;
+            }
         }
 
         return $this->AuthenticationFailed();
@@ -169,7 +173,10 @@ class User extends Response implements Pageable {
     private function AuthenticationFailed() {
         if ($this->exception) return;
 
-        if (!Utils::IsNullOrWhitespace($this->email)) {
+        if ($this->invalidRecoveryCode) {
+            return $this->ResponseError(400, 109, "Invalid recovery code.");
+        }
+        else if (!Utils::IsNullOrWhitespace($this->email)) {
             return $this->ResponseError(400, 107, "Authentication failed, email on file.");
         }
         else {

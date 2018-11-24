@@ -8,6 +8,7 @@ class Deck extends Response implements Pageable {
     public $user = null;
     public $createdOn;
     public $deckName;
+    public $category;
     public $description;
     private $username;
     private $suppliedPassword;
@@ -49,12 +50,13 @@ class Deck extends Response implements Pageable {
         }
 
         $this->description = is_array($data) && array_key_exists('description', $data) ? $data['description'] : null;
+        $this->category = is_array($data) && array_key_exists('category', $data) ? $data['category'] : null;
 
         $this->Validate('create');
         if (!$this->valid) return;
 
         $userId = $this->user->id;
-        DB::executeSql("INSERT INTO decks (user_id, name, description) VALUES ($userId, '$this->deckName', '$this->description')");
+        DB::executeSql("INSERT INTO decks (user_id, name, description, category) VALUES ($userId, '$this->deckName', '$this->description', '$this->category')");
         $this->Load();
     }
 
@@ -81,7 +83,8 @@ class Deck extends Response implements Pageable {
             return $this->ResponseError(400, 113, "Authentication failed.");
         }
 
-        $this->description = array_key_exists('description', $data) ? $data['description'] : null;
+        $this->description = is_array($data) && array_key_exists('description', $data) ? $data['description'] : null;
+        $this->category = is_array($data) && array_key_exists('category', $data) ? $data['category'] : null;
 
         $this->Validate('update');
         if (!$this->valid) return;
@@ -91,7 +94,7 @@ class Deck extends Response implements Pageable {
             return $this->ResponseError(400, 201, "Deck was not found.");
         }
 
-        DB::executeSql("UPDATE decks SET description = '$this->description' WHERE user_id = $userId AND name = '$this->deckName'");
+        DB::executeSql("UPDATE decks SET description = '$this->description', category = '$this->category' WHERE user_id = $userId AND name = '$this->deckName'");
         $this->Load();
     }
 
@@ -124,11 +127,10 @@ class Deck extends Response implements Pageable {
             }
         }
 
-        if (Utils::IsNullOrWhitespace($this->deckName))
-        return;
+        if (Utils::IsNullOrWhitespace($this->deckName)) return;
 
         $userId = $this->user->id;
-        DB::executeQuery('deck',"SELECT id, created_on, name, description FROM decks WHERE user_id = $userId AND name = '$this->deckName'");
+        DB::executeQuery('deck',"SELECT id, created_on, name, description, category FROM decks WHERE user_id = $userId AND name = '$this->deckName'");
         if (count(DB::$results['deck']) <= 0) {
             return;
         }
@@ -137,6 +139,7 @@ class Deck extends Response implements Pageable {
         $this->createdOn = DB::$results['deck'][0]['created_on'];
         $this->deckName = DB::$results['deck'][0]['name'];
         $this->description = DB::$results['deck'][0]['description'];
+        $this->category = DB::$results['deck'][0]['category'];
     }
 
     private function Authenticated() {
@@ -169,7 +172,7 @@ class Deck extends Response implements Pageable {
     }
 
     public function PagerReturnColumns() {
-        return ['decks.id', 'decks.user_id', 'decks.created_on', 'decks.name', 'decks.description'];
+        return ['decks.id', 'decks.user_id', 'decks.category', 'decks.created_on', 'decks.name', 'decks.description'];
     }
 
     public function PagerJoinTable() {

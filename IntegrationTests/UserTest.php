@@ -258,8 +258,8 @@ final class UserTest extends TestCase
         $this->assertEquals($user->authenticated, false);
         $this->assertEquals($user->obfuscatedEmail, null);
         $this->assertEquals($user->statusCode, 400);
-        $this->assertEquals($user->message, 'Authentication failed, email on file.');
-        $this->assertEquals($user->referenceCode, 107);
+        $this->assertEquals($user->message, 'Invalid recovery code.');
+        $this->assertEquals($user->referenceCode, 109);
     }
 
     public function testUpdateUserPasswordOldRecoveryCode() {

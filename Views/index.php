@@ -45,6 +45,10 @@
             <td>Authentication failed, no email on file.</td>
         </tr>
         <tr>
+            <td>109</td>
+            <td>Invalid recovery code.</td>
+        </tr>
+        <tr>
             <td>110</td>
             <td>Recovery code expired.</td>
         </tr>

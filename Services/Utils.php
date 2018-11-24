@@ -10,13 +10,13 @@ class Utils {
     }
 
     public static function UrlSafe($key) {
-        $key = preg_replace("/[^A-Za-z0-9\-\.]/", '', $key);
+        $key = preg_replace("/[^A-Za-z0-9 -]/", '', $key);
+        $key = preg_replace('/\s+/', '-', $key);
         return $key;
     }
 
     public static function UrlToString($key) {
         $key = str_replace('-', ' ', $key);
-
         return $key;
     }
 

@@ -7,6 +7,7 @@ require_once('Services/ReCaptcha.php');
 require_once('Models/Pager.php');
 require_once('Models/User.php');
 require_once('Models/Deck.php');
+require_once('Models/Decks.php');
 require_once('Models/Cards.php');
 
 Flight::route('/', function(){
@@ -18,13 +19,13 @@ Flight::route('/', function(){
 //     Flight::json($page);
 // });
 
-Flight::route('GET /decks/@username/@index/@length/@orderBy/@direction', function($username, $index, $length, $orderBy, $direction) {
-    $userId = User::GetIdByName($username);
+// Flight::route('GET /decks/@username/@index/@length/@orderBy/@direction', function($username, $index, $length, $orderBy, $direction) {
+//     $userId = User::GetIdByName($username);
     
-    $filter = ['user_id' => $userId];
-    $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, $filter);
-    Flight::json($page);
-});
+//     $filter = ['user_id' => $userId];
+//     $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, $filter);
+//     Flight::json($page);
+// });
 
 // Flight::route('GET /decks/@index/@length/@orderBy/@direction', function($index, $length, $orderBy, $direction) {
 //     $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, null);
@@ -101,8 +102,8 @@ Flight::route('PUT /deck', function() {
     }
 });
 
-Flight::route('GET /deck/isNameAvailable/@deck', function($deck) {
-    $deck = new Deck($deck);
+Flight::route('GET /deck/isNameAvailable/@username/@deck', function($username, $deck) {
+    $deck = new Deck($username, $deck);
     Flight::json($deck->createdOn == null);
 });
 
@@ -127,6 +128,11 @@ Flight::route('DELETE /deck/@username/@deckName/@password', function($username, 
     $deck = new Deck($username, $deckName, $password);
     $deck->Delete();
     Flight::json($deck);
+});
+
+Flight::route('GET /decks/@username', function($username) {
+    $decks = new Decks($username);
+    Flight::json($decks);
 });
 
 Flight::route('POST /cards', function() {
