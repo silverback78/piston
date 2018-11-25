@@ -3,8 +3,8 @@ require_once('Models/User.php');
 require_once('Models/Deck.php');
 require_once('Models/Cards.php');
 require_once('Services/Utils.php');
-require_once('Services/ReCaptcha.php');
 require_once('Services/DB.php');
+require_once('Tests/Mocks/ReCaptcha.php');
 
 use PHPUnit\Framework\TestCase;
 

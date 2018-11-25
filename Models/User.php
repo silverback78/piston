@@ -15,7 +15,7 @@ class User extends Response implements Pageable {
     private $email;
     private $recoveryCode;
     private $recoveryCodeTimestamp;
-    private $recaptchaResponse;
+    private $reCaptchaResponse;
     private $valid = false;
     private $updatingPassword = false;
     private $invalidRecoveryCode = false;
@@ -52,7 +52,7 @@ class User extends Response implements Pageable {
         $this->username = array_key_exists('username', $data) ? Utils::UrlSafe($data['username']) : null;
         $this->password = array_key_exists('password', $data) ? password_hash($data['password'], PASSWORD_DEFAULT) : null;
         $this->email = array_key_exists('email', $data) ? $data['email'] : null;
-        $this->recaptchaResponse = array_key_exists('recaptchaResponse', $data) ? $data['recaptchaResponse'] : null;
+        $this->reCaptchaResponse = array_key_exists('reCaptchaResponse', $data) ? $data['reCaptchaResponse'] : null;
 
         $this->Validate('create');
         if (!$this->valid) return;
@@ -203,8 +203,8 @@ class User extends Response implements Pageable {
                 return $this->ResponseError(400, 101, "Duplicate username found.");
             }
 
-            $validateRecaptcha = ReCaptcha::Validate($this->recaptchaResponse);
-            if (Config::$recaptchaEnabled && $validateRecaptcha->success != true) {
+            $validateRecaptcha = ReCaptcha::Validate($this->reCaptchaResponse);
+            if ($validateRecaptcha->success != true) {
                 return $this->ResponseError(400, 102, 'Captcha failed.');
             }
         }
