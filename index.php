@@ -14,31 +14,31 @@ Flight::route('/', function(){
     Flight::render('index');
 });
 
-// Flight::route('GET /users/@index/@length/@orderBy/@direction', function($index, $length, $orderBy, $direction) {
-//     $page = new Pager(new User(), $index, $length, $orderBy, $direction, null);
-//     Flight::json($page);
-// });
+Flight::route('GET /users/@index/@length/@orderBy/@direction', function($index, $length, $orderBy, $direction) {
+    $page = new Pager(new User(), $index, $length, $orderBy, $direction, null);
+    Flight::json($page);
+});
 
-// Flight::route('GET /decks/@username/@index/@length/@orderBy/@direction', function($username, $index, $length, $orderBy, $direction) {
-//     $userId = User::GetIdByName($username);
+Flight::route('GET /decks/@username/@index/@length/@orderBy/@direction', function($username, $index, $length, $orderBy, $direction) {
+    $userId = User::GetIdByName($username);
     
-//     $filter = ['user_id' => $userId];
-//     $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, $filter);
-//     Flight::json($page);
-// });
+    $filter = ['user_id' => $userId];
+    $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, $filter);
+    Flight::json($page);
+});
 
-// Flight::route('GET /decks/@index/@length/@orderBy/@direction', function($index, $length, $orderBy, $direction) {
-//     $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, null);
-//     Flight::json($page);
-// });
+Flight::route('GET /decks/@index/@length/@orderBy/@direction', function($index, $length, $orderBy, $direction) {
+    $page = new Pager(new Deck(), $index, $length, $orderBy, $direction, null);
+    Flight::json($page);
+});
 
-// Flight::route('GET /cards/@username/@deckName/@index/@length/@orderBy/@direction', function($username, $deckName, $index, $length, $orderBy, $direction) {
-//     $deckId = Deck::GetIdByName($username, $deckName);
+Flight::route('GET /cards/@username/@deckName/@index/@length/@orderBy/@direction', function($username, $deckName, $index, $length, $orderBy, $direction) {
+    $deckId = Deck::GetIdByName($username, $deckName);
 
-//     $filter = ['deck_id' => $deckId];
-//     $page = new Pager(new Card(), $index, $length, $orderBy, $direction, $filter);
-//     Flight::json($page);
-// });
+    $filter = ['deck_id' => $deckId];
+    $page = new Pager(new Card(), $index, $length, $orderBy, $direction, $filter);
+    Flight::json($page);
+});
 
 Flight::route('POST /user', function() {
     $data = Flight::request()->data->data;
