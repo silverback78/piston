@@ -1,5 +1,5 @@
 <?php
-require_once('Response.php');
+require_once('Models/Response.php');
 require_once('Interfaces/Pageable.php');
 
 class Cards extends Response implements Pageable {
@@ -47,10 +47,11 @@ class Cards extends Response implements Pageable {
         if (!$this->valid) return;
 
         foreach ($this->cards as $value) {
-            $deckId = $this->deck->id;
-            $term = $value['term'];
-            $definition = $value['definition'];
-            DB::executeSql("INSERT INTO cards (deck_id, term, definition) VALUES ($deckId, '$term', '$definition')");
+            DB::executeSql("INSERT INTO cards (deck_id, term, definition) VALUES (:deckId, :term, :definition)", array(
+                ':deckId' => $this->deck->id,
+                ':term' => $value['term'],
+                ':definition' => $value['definition'],
+            ));
         }
         $this->Load();
     }
@@ -76,14 +77,16 @@ class Cards extends Response implements Pageable {
         $this->Validate('update');
         if (!$this->valid) return;
 
-        $deckId = $this->deck->id;
-        DB::executeSql("DELETE FROM cards WHERE deck_id = $deckId");
+        DB::executeSql("DELETE FROM cards WHERE deck_id = :deckId", array(
+            ':deckId' => $this->deck->id
+        ));
 
         foreach ($this->cards as $value) {
-            $deckId = $this->deck->id;
-            $term = $value['term'];
-            $definition = $value['definition'];
-            DB::executeSql("INSERT INTO cards (deck_id, term, definition) VALUES ($deckId, '$term', '$definition')");
+            DB::executeSql("INSERT INTO cards (deck_id, term, definition) VALUES (:deckId, :term, :definition)", array(
+                ':deckId' => $this->deck->id,
+                ':term' => $value['term'],
+                ':definition' => $value['definition'],
+            ));
         }
         $this->Load();
     }
@@ -99,8 +102,9 @@ class Cards extends Response implements Pageable {
             return $this->ResponseError(400, 113, "Authentication failed.");
         }
 
-        $deckId = $this->deck->id;
-        DB::executeSql("DELETE FROM cards WHERE deck_id = $deckId");
+        DB::executeSql("DELETE FROM cards WHERE deck_id = :deckId", array(
+            ':deckId' => $this->deck->id
+        ));
 
         $this->Load();
     }
@@ -130,8 +134,9 @@ class Cards extends Response implements Pageable {
             }
         }
 
-        $deckId = $this->deck->id;
-        DB::executeQuery('cards',"SELECT id, created_on, term, definition FROM cards WHERE deck_id = $deckId");
+        DB::executeQuery('cards',"SELECT id, created_on, term, definition FROM cards WHERE deck_id = :deckId", array(
+            ':deckId' => $this->deck->id
+        ));
         if (count(DB::$results['cards']) <= 0) {
             $this->cards = null;
             return;

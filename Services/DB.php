@@ -3,6 +3,7 @@ require_once('Config.php');
 
 class DB {
     public static $sql;
+    public static $params;
     public static $config;
     public static $pdo = null;
     public static $query;
@@ -36,15 +37,12 @@ class DB {
     }
 
     public static function execute() {
+        $dbname = Config::$dbName;
+        $use = self::$pdo->prepare("use $dbname");
+        $use->execute();
         self::$startTime = microtime(true);
-        try {
-            self::$query = self::$pdo->prepare(self::$sql);
-            self::$query->execute();
-        }
-        catch (PDOException $e) {
-            echo "Error : " . $e->getMessage() . "<br/>";
-            self::closeConnection();
-        }
+        self::$query = self::$pdo->prepare(self::$sql);
+        self::$query->execute(self::$params);
         self::$endTime = microtime(true);
         self::$executionTime = self::$endTime - self::$startTime;
     }
@@ -54,15 +52,17 @@ class DB {
         self::$pdo = null;
     }
 
-    public static function executeQuery($key, $sql) {
+    public static function executeQuery($key, $sql, $params) {
         self::$sql = $sql;
+        self::$params = $params;
         self::connect();
         self::execute();
         self::$results[$key] = self::$query->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public static function executeSql($sql) {
+    public static function executeSql($sql, $params) {
         self::$sql = $sql;
+        self::$params = $params;
         self::connect();
         self::execute();
     }

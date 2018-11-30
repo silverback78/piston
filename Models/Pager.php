@@ -1,5 +1,5 @@
 <?php
-require_once('Response.php');
+require_once('Models/Response.php');
 require_once('Services/Utils.php');
 
 class Pager extends Response {
@@ -27,7 +27,7 @@ class Pager extends Response {
         }
     
         if (!empty($orderBy)) {
-            DB::executeQuery('orderBy',"SHOW COLUMNS FROM $tableName LIKE '$orderBy'");
+            DB::executeQuery('orderBy',"SHOW COLUMNS FROM $tableName LIKE '$orderBy'", array());
             if (count(DB::$results['orderBy']) < 1) {
                 $orderBy = null;
             }
@@ -55,8 +55,8 @@ class Pager extends Response {
             }
         }
    
-        DB::executeQuery('page', "SELECT $returnColumns $joinColumns FROM $tableName $joinTable $filterSql ORDER BY $orderBy $direction $limit");
-        DB::executeQuery('total_count', "SELECT COUNT(*) as total_count FROM $tableName $filterSql ORDER BY $orderBy $direction");
+        DB::executeQuery('page', "SELECT $returnColumns $joinColumns FROM $tableName $joinTable $filterSql ORDER BY $orderBy $direction $limit", array());
+        DB::executeQuery('total_count', "SELECT COUNT(*) as total_count FROM $tableName $filterSql ORDER BY $orderBy $direction", array());
         DB::closeConnection();
         
         $page['totalCount'] = DB::$results['total_count'][0]['total_count'];

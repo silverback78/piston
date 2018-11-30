@@ -31,8 +31,10 @@ final class CardsTest extends TestCase
     ];
 
     public function DeleteUser() {
-        DB::executeSql("DELETE FROM users WHERE username = '$this->testUsername'");
-      }
+        DB::executeSql("DELETE FROM users WHERE username = :username", array(
+            ':username' => $this->testUsername
+        ));
+    }
 
     public function CreateUser() {
         $this->DeleteUser();

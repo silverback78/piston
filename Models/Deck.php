@@ -1,5 +1,5 @@
 <?php
-require_once('Response.php');
+require_once('Models/Response.php');
 require_once('Interfaces/Pageable.php');
 
 class Deck extends Response implements Pageable {
@@ -32,9 +32,10 @@ class Deck extends Response implements Pageable {
     }
 
     public static function GetIdByName($username, $deckName) {
-        $userId = User::GetIdByName($username);
-        $name = Utils::UrlSafe($deckName);
-        DB::executeQuery('name',"SELECT id FROM decks WHERE user_id = $userId AND name = '$name'");
+        DB::executeQuery('name',"SELECT id FROM decks WHERE user_id = :userId AND name = :name", array(
+            ':userId' => User::GetIdByName($username),
+            ':name' => Utils::UrlSafe($deckName)
+        ));
         if (count(DB::$results['name']) > 0) {
             return intval(DB::$results['name'][0]['id']);
         }
@@ -55,8 +56,12 @@ class Deck extends Response implements Pageable {
         $this->Validate('create');
         if (!$this->valid) return;
 
-        $userId = $this->user->id;
-        DB::executeSql("INSERT INTO decks (user_id, name, description, category) VALUES ($userId, '$this->deckName', '$this->description', '$this->category')");
+        DB::executeSql("INSERT INTO decks (user_id, name, description, category) VALUES (:userId, :deckName, :description, :category)", array(
+            ':userId' => $this->user->id,
+            ':deckName' => $this->deckName,
+            ':description' => $this->description,
+            ':category' => $this->category,
+        ));
         $this->Load();
     }
 
@@ -73,7 +78,10 @@ class Deck extends Response implements Pageable {
             $userId = $this->user->id;
         }
         if ($userId != null) {
-            DB::executeQuery('deck',"SELECT id FROM decks WHERE user_id = $userId AND name = '$this->deckName'");
+            DB::executeQuery('deck',"SELECT id FROM decks WHERE user_id = :userId AND name = :name", array(
+                ':userId' => $userId,
+                ':name' => $this->deckName
+            ));
             if (count(DB::$results['deck']) <= 0) {
                 $this->Create($data);
             }
@@ -94,7 +102,12 @@ class Deck extends Response implements Pageable {
             return $this->ResponseError(400, 201, "Deck was not found.");
         }
 
-        DB::executeSql("UPDATE decks SET description = '$this->description', category = '$this->category' WHERE user_id = $userId AND name = '$this->deckName'");
+        DB::executeSql("UPDATE decks SET description = :description, category = :category WHERE user_id = :userId AND name = :deckName", array(
+            ':description' => $this->description,
+            ':category' => $this->category,
+            ':userId' => $userId,
+            ':deckName' => $this->deckName,
+        ));
         $this->Load();
     }
 
@@ -105,7 +118,9 @@ class Deck extends Response implements Pageable {
             return $this->ResponseError(400, 113, "Authentication failed.");
         }
 
-        DB::executeSql("DELETE FROM decks WHERE id = $this->id");
+        DB::executeSql("DELETE FROM decks WHERE id = :id", array(
+            ':id' => $this->id
+        ));
     }
 
     public function Load() {
@@ -130,7 +145,10 @@ class Deck extends Response implements Pageable {
         if (Utils::IsNullOrWhitespace($this->deckName)) return;
 
         $userId = $this->user->id;
-        DB::executeQuery('deck',"SELECT id, created_on, name, description, category FROM decks WHERE user_id = $userId AND name = '$this->deckName'");
+        DB::executeQuery('deck',"SELECT id, created_on, name, description, category FROM decks WHERE user_id = :userId AND name = :name", array(
+            ':userId' => $this->user->id,
+            ':name' => $this->deckName
+        ));
         if (count(DB::$results['deck']) <= 0) {
             return;
         }
@@ -152,8 +170,10 @@ class Deck extends Response implements Pageable {
         }
 
         if ($operation == 'create') {
-            $userId = $this->user->id;
-            DB::executeQuery('name',"SELECT decks.id FROM decks join users on decks.user_id = users.id WHERE decks.name = '$this->deckName' AND users.id = $userId");
+            DB::executeQuery('name',"SELECT decks.id FROM decks join users on decks.user_id = users.id WHERE decks.name = :deckName AND users.id = :userId", array(
+                ':deckName' => $this->deckName,
+                ':userId' => $this->user->id
+            ));
             if (count(DB::$results['name']) > 0) {
                 return $this->ResponseError(400, 202, 'Duplicate deck name found.');
             }

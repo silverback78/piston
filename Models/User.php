@@ -1,5 +1,5 @@
 <?php
-require_once('Response.php');
+require_once('Models/Response.php');
 require_once('Interfaces/Pageable.php');
 require_once('Services/DB.php');
 
@@ -22,7 +22,9 @@ class User extends Response implements Pageable {
 
     public static function GetIdByName($username) {
         $username = Utils::UrlSafe($username);
-        DB::executeQuery('username',"SELECT id FROM users WHERE username = '$username'");
+        DB::executeQuery('username',"SELECT id FROM users WHERE username = :username", array(
+            ':username' => Utils::UrlSafe($username)
+        ));
         if (count(DB::$results['username']) > 0) {
             return intval(DB::$results['username'][0]['id']);
         }
@@ -57,9 +59,15 @@ class User extends Response implements Pageable {
         $this->Validate('create');
         if (!$this->valid) return;
 
-        DB::executeSql("INSERT INTO users (username, password, email) VALUES ('$this->username', '$this->password', '$this->email')");
+        DB::executeSql("INSERT INTO users (username, password, email) VALUES (:username, :password, :email)", array(
+            ':username' => $this->username,
+            ':password' => $this->password,
+            ':email' => $this->email
+        ));
         $id = DB::lastInsertId();
-        DB::executeQuery('user', "SELECT username FROM users WHERE id = $id");
+        DB::executeQuery('user', "SELECT username FROM users WHERE id = :id", array(
+            ':id' => DB::lastInsertId()
+        ));
         $this->username = DB::$results['user'][0]['username'];
         $this->Load();
     }
@@ -72,7 +80,9 @@ class User extends Response implements Pageable {
     public function Update($data) {
         if ($this->exception) return;
 
-        DB::executeQuery('user', "SELECT id FROM users WHERE username = '$this->username'");
+        DB::executeQuery('user', "SELECT id FROM users WHERE username = :username", array(
+            ':username' => $this->username
+        ));
         if (count(DB::$results['user']) <= 0) {
             return $this->Create($data);
         }
@@ -91,7 +101,11 @@ class User extends Response implements Pageable {
         $this->Validate('update');
         if (!$this->valid) return;
 
-        DB::executeSql("UPDATE users SET password = '$this->password', email = '$this->email', recovery_code = null, recovery_code_timestamp = null WHERE id = $this->id");
+        DB::executeSql("UPDATE users SET password = :password, email = :email, recovery_code = null, recovery_code_timestamp = null WHERE id = :id", array(
+            ':password' => $this->password,
+            ':email' => $this->email,
+            ':id' => $this->id
+        ));
     }
 
     public function Delete() {
@@ -99,7 +113,9 @@ class User extends Response implements Pageable {
         if (!$this->authenticated) {
             return $this->AuthenticationFailed();
         }
-        DB::executeSql("DELETE FROM users WHERE id = $this->id");
+        DB::executeSql("DELETE FROM users WHERE id = :id", array(
+            ':id' => $this->id
+        ));
     }
 
     public function ResetPassword() {
@@ -125,7 +141,9 @@ class User extends Response implements Pageable {
     private function Load() {
         if (Utils::IsNullOrWhitespace($this->username)) return;
 
-        DB::executeQuery('user', "SELECT id, username, password, email, created_on, recovery_code, recovery_code_timestamp FROM users WHERE username = '$this->username'");
+        DB::executeQuery('user', "SELECT id, username, password, email, created_on, recovery_code, recovery_code_timestamp FROM users WHERE username = :username", array(
+            ':username' => $this->username
+        ));
         if (count(DB::$results['user']) <= 0) {
             return $this->ResponseError(400, 105, "Unable to load user, username not found.");
         }
@@ -141,7 +159,14 @@ class User extends Response implements Pageable {
 
         $recoveryCode = $this->recoveryCode ? $this->recoveryCode : 'NULL';
         $recoveryCodeTimestamp = $this->recoveryCodeTimestamp ? "'$this->recoveryCodeTimestamp'" : 'NULL';
-        DB::executeSql("UPDATE users SET username='$this->username', password='$this->password', email='$this->email', recovery_code=$recoveryCode, recovery_code_timestamp=$recoveryCodeTimestamp WHERE id=$this->id");
+        DB::executeSql("UPDATE users SET username=:username, password=:password, email=:email, recovery_code=:recovery_code, recovery_code_timestamp=:recovery_code_timestamp WHERE id=:id", array(
+            ':username' => $this->username,
+            ':password' => $this->password,
+            ':email' => $this->email,
+            ':recovery_code' => $recoveryCode,
+            ':recovery_code_timestamp' => $recoveryCodeTimestamp,
+            ':id' => $this->id
+        ));
     }
 
     private function Authenticate() {
@@ -198,7 +223,9 @@ class User extends Response implements Pageable {
         }
 
         if ($operation == 'create') {
-            DB::executeQuery('username',"SELECT id FROM users WHERE username = '$this->username'");
+            DB::executeQuery('username',"SELECT id FROM users WHERE username = :username", array(
+                ':username' => $this->username
+            ));
             if (count(DB::$results['username']) > 0) {
                 return $this->ResponseError(400, 101, "Duplicate username found.");
             }

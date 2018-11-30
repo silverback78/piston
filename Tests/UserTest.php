@@ -21,7 +21,9 @@ final class UserTest extends TestCase
     public $testWrongRecoveryCode = '54321';
 
     public function DeleteUser() {
-        DB::executeSql("DELETE FROM users WHERE username = '$this->testUsername'");
+        DB::executeSql("DELETE FROM users WHERE username = :username", array(
+            ':username' => $this->testUsername
+        ));
     }
 
     public function CreateUser() {
@@ -44,13 +46,21 @@ final class UserTest extends TestCase
 
     public function SetRecoveryCode() {
         $recoveryCodeTimestamp = date('Y-m-d H:i:s');
-        DB::executeSql("UPDATE users SET recovery_code = $this->testRecoveryCode, recovery_code_timestamp = '$recoveryCodeTimestamp' WHERE username = $this->testUsername");
+        DB::executeSql("UPDATE users SET recovery_code = :recovery_code, recovery_code_timestamp = :recovery_code_timestamp WHERE username = :username", array(
+            ':recovery_code' => $this->testRecoveryCode,
+            ':recovery_code_timestamp' => $recoveryCodeTimestamp,
+            ':username' => $this->testUsername
+        ));
     }
 
     public function SetOldRecoveryCode() {
         $recoveryCodeTimestamp = date("Y-m-d H:i:s", strtotime( '-1 days' ) );
         
-        DB::executeSql("UPDATE users SET recovery_code = $this->testRecoveryCode, recovery_code_timestamp = '$recoveryCodeTimestamp' WHERE username = $this->testUsername");
+        DB::executeSql("UPDATE users SET recovery_code = :recovery_code, recovery_code_timestamp = :recovery_code_timestamp WHERE username = :username", array(
+            ':recovery_code' => $this->testRecoveryCode,
+            ':recovery_code_timestamp' => $recoveryCodeTimestamp,
+            ':username' => $this->testUsername
+        ));
     }
 
     public function setUp() {
