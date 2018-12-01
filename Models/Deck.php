@@ -51,7 +51,7 @@ class Deck extends Response implements Pageable {
         }
 
         $this->description = is_array($data) && array_key_exists('description', $data) ? $data['description'] : null;
-        $this->category = is_array($data) && array_key_exists('category', $data) ? $data['category'] : null;
+        $this->category = is_array($data) && array_key_exists('category', $data) ? Utils::UrlSafe($data['category']) : null;
 
         $this->Validate('create');
         if (!$this->valid) return;
@@ -92,7 +92,7 @@ class Deck extends Response implements Pageable {
         }
 
         $this->description = is_array($data) && array_key_exists('description', $data) ? $data['description'] : null;
-        $this->category = is_array($data) && array_key_exists('category', $data) ? $data['category'] : null;
+        $this->category = is_array($data) && array_key_exists('category', $data) ? Utils::UrlSafe($data['category']) : null;
 
         $this->Validate('update');
         if (!$this->valid) return;
